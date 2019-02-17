@@ -6,11 +6,8 @@ CMake cross platform module for building [Dear ImGui](https://github.com/ocornut
 ## Getting Started
 
 ```bash
-git clone https://github.com/giladreich/ImGui-CMake-Installer
-cd ImGui-CMake-Installer
-git submodule update --init --recursive
-
-mkdir build && cd build
+git clone --recursive https://github.com/giladreich/ImGui-CMake-Installer
+cd ImGui-CMake-Installer && mkdir build && cd build
 cmake .. -DIMGUI_WITH_IMPL=OFF
 cmake --build . --config Release --target install
 ```
