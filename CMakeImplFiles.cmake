@@ -3,6 +3,7 @@
 #
 cmake_minimum_required(VERSION 3.6.0)
 
+
 function(Init_Impl_Files HEADERS_CXX_IMPL_FILES SOURCES_CXX_IMPL_FILES)
   if (IMGUI_IMPL_DX9)
     message(STATUS "[INFO] Including Direct3D9 implementation files.")

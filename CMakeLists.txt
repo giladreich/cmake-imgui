@@ -16,19 +16,20 @@ project(imgui
         DESCRIPTION "ImGui library."
 )
 
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/$<CONFIG>)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/$<CONFIG>)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/$<CONFIG>)
+set(CMAKE_PDB_OUTPUT_DIRECTORY     ${CMAKE_BINARY_DIR}/bin/$<CONFIG>)
 
 set(CMAKE_VERBOSE_MAKEFILE TRUE)
 
 if (WIN32)
   if (IMGUI_STATIC_LIBRARY)
-    message(STATUS "[INFO] Building library as static library.")
+    message(STATUS "[INFO] Building library as --> Static Library")
     set(BUILD_SHARED_LIBS OFF)
     set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS OFF)
   else()
-    message(STATUS "[INFO] Building library as DLL.")
+    message(STATUS "[INFO] Building library as --> DLL")
     set(BUILD_SHARED_LIBS ON)
     set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
   endif()
@@ -37,6 +38,7 @@ endif()
 set(SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/imgui)
 set(EXAMPLES_DIR ${SOURCE_DIR}/examples)
 set(FONTS_DIR ${SOURCE_DIR}/misc/fonts)
+
 
 ##################################################################################################################
 # Project Files
@@ -108,15 +110,42 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 ##################################################################################################################
 # Target Install
 ##################################################################################################################
-set (DISTRIBUTE_DIR ${CMAKE_BINARY_DIR}/dist)
-install(TARGETS ${PROJECT_NAME}
-        RUNTIME DESTINATION ${DISTRIBUTE_DIR}/bin
-        LIBRARY DESTINATION ${DISTRIBUTE_DIR}/lib
-        ARCHIVE DESTINATION ${DISTRIBUTE_DIR}/lib
+set (DISTRIBUTE_DIR ${CMAKE_BINARY_DIR}/dist/$<CONFIG>)
+install(
+    TARGETS ${PROJECT_NAME}
+    RUNTIME DESTINATION ${DISTRIBUTE_DIR}/bin
+    LIBRARY DESTINATION ${DISTRIBUTE_DIR}/lib
+    ARCHIVE DESTINATION ${DISTRIBUTE_DIR}/lib
 )
-install(FILES ${HEADERS_CXX_FILES} ${HEADERS_CXX_IMPL_FILES}
-        DESTINATION ${DISTRIBUTE_DIR}/include
+install(
+    FILES ${HEADERS_CXX_FILES} ${HEADERS_CXX_IMPL_FILES}
+    DESTINATION ${DISTRIBUTE_DIR}/include
 )
-install(FILES ${FONTS_FILES}
-        DESTINATION ${DISTRIBUTE_DIR}/misc/fonts
+install(
+    FILES ${FONTS_FILES}
+    DESTINATION ${DISTRIBUTE_DIR}/misc/fonts
 )
+
+# Install PDB files for VS builds to enable debugging:
+if (MSVC)
+  if (NOT IMGUI_STATIC_LIBRARY)
+    install(
+        FILES $<TARGET_PDB_FILE:${PROJECT_NAME}> 
+        DESTINATION ${DISTRIBUTE_DIR}/lib
+        CONFIGURATIONS Debug OR RelWithDebInfo
+        COMPONENT libraries
+        OPTIONAL
+    )
+  else()
+    install(
+        FILES 
+          $<$<CONFIG:Debug>:${CMAKE_BINARY_DIR}/bin/$<CONFIG>/${PROJECT_NAME}.pdb>
+          $<$<CONFIG:RelWithDebInfo>:${CMAKE_BINARY_DIR}/${PROJECT_NAME}.dir/$<CONFIG>/${PROJECT_NAME}.pdb>
+        DESTINATION ${DISTRIBUTE_DIR}/lib
+        CONFIGURATIONS Debug OR RelWithDebInfo
+        COMPONENT libraries
+        OPTIONAL
+    )
+  endif()
+endif()
+
