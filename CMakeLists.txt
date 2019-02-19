@@ -105,6 +105,9 @@ target_include_directories(${PROJECT_NAME} PUBLIC
     ${SOURCE_DIR}
     ${SOURCE_DIR}/examples
 )
+if(IMGUI_IMPL_DX12 AND NOT IMGUI_STATIC_LIBRARY)
+    target_link_libraries(${PROJECT_NAME} PUBLIC d3d12)
+endif()
 
 
 ##################################################################################################################
