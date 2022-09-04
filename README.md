@@ -5,60 +5,90 @@ CMake cross platform module for building [Dear ImGui](https://github.com/ocornut
 
 ## Getting Started
 
+
+Clone the project:
 ```bash
-git clone --recursive https://github.com/giladreich/ImGui-CMake-Installer
-cd ImGui-CMake-Installer && mkdir build && cd build
-cmake .. -DIMGUI_WITH_IMPL=OFF
-cmake --build . --config Release --target install
+git clone --recursive https://github.com/giladreich/cmake-imgui
+cd cmake-imgui
 ```
 
-By default it would build ImGui as a static library, but if you would like to build as a shared library(DLL), turn off `IMGUI_STATIC_LIBRARY` option when generating the project:
+Assuming the used cmake generator [supports multi-configurations](https://cmake.org/cmake/help/latest/variable/CMAKE_CONFIGURATION_TYPES.html)
+(as the case with Visual Studio, Xcode, Ninja Multi-Config and others), to build and package the library, use the following commands:
 ```bash
-cmake .. -DIMGUI_WITH_IMPL=OFF -DIMGUI_STATIC_LIBRARY=OFF
+mkdir build && cd build
+cmake ..
+cmake --build . --config debug --target install
+cmake --build . --config release --target install
 ```
 
-There are few things you want to know when you build `Dear ImGui`:<br>
-ImGui comes with examples that already takes care of the way people should interact with the library, i.e `imgui_impl_win32.cpp`, `imgui_impl_vulkan.cpp`, `imgui_impl_osx.mm` `imgui_impl_sdl.cpp` etc...
+If the cmake generator doesn't support multi-configurations, when running the `cmake ..` configure command, ensure to also provide it the `-DCMAKE_BUILD_TYPE=Release` argument.
 
-Basically the author of the library didn't want it to be dependent on any kind of graphic API's, therefore he expects that you'll provide your own implementation for that part(even though they're already exists in the `examples`).
-
-That being said, before you build the library, you want to have a look at `CMakeOptions.cmake` file to see which options are available.
-
-If you want to include one of the examples in the library build, when you generate the cmake project, you'll want to pass which graphic API you want to include in your build. Example:
+By default it will build ImGui as a static library. However it's also possible building it as a shared library:
 ```bash
-cmake .. -DIMGUI_IMPL_DX11=ON
+cmake .. -DIMGUI_STATIC_LIBRARY=OFF
 ```
 
-That would basically copy and include in your library build the following files:<br>
-`imgui_impl_win32.cpp` `imgui_impl_win32.h`, `imgui_impl_dx11.cpp`, `imgui_impl_dx11.h`
-and the headers will also be copied under `dist/include` directory.
+Note that ImGui also provide the option to use existing backends, where it contains platform specific implementation (`win32`, `sdl`, `glfw`, `glut`, `android`, `apple`, `allegro5`) and graphic apis (`dx{9,10,11,12}`, `vulkan`, `opengl{2,3}`, `wgpu`).
+
+This said, when building the library, you may want to provide different combinations of flags in order to include the relevant backends in the library build:
+```bash
+cmake .. -DIMGUI_WITH_BACKEND=ON -DIMGUI_BACKEND_PLATFORM=WIN32 \
+  -DIMGUI_BACKEND_DX11=ON
+```
+
+Note that with the DirectX case, it's also possible to build all ImGui's DirectX backends in a single build:
+```bash
+cmake .. -DIMGUI_WITH_BACKEND=ON -DIMGUI_BACKEND_PLATFORM=WIN32 \
+  -DIMGUI_BACKEND_DX9=ON \
+  -DIMGUI_BACKEND_DX10=ON \
+  -DIMGUI_BACKEND_DX11=ON \
+  -DIMGUI_BACKEND_DX12=ON
+```
+
+This may be useful during testing of the library, but for actual builds, ideally avoid this in order to keep a minimal build of the library.
+
+
+### Package Config / Using the library
+
+In the `examples` dir there are multiple cmake scripts to consume the previously built and installed library. The installed library comes with cmake package files. This is in particular useful to have clean integration on the consuming project (aka target), because it will inherit all the configurations needed to build an app using the library.
+
+CMake's `package_config` will automatically generate a special target `ImGui::imgui` if found, that can be used on the consuming of package through `target_link_libraries`. Here is a minimal example app:
+```cmake
+cmake_minimum_required(VERSION 3.15)
+project(my_imgui_app LANGUAGES CXX)
+set(ImGui_DIR "${ImGui_INSTALL_DIR}/lib/cmake")
+list(APPEND CMAKE_PREFIX_PATH ${ImGui_DIR})
+find_package(ImGui CONFIG REQUIRED)
+add_executable(${PROJECT_NAME} main.cpp)
+target_link_libraries(${PROJECT_NAME} PRIVATE ImGui::imgui)
+```
 
 
 ### Prerequisites
 
-If you run into any errors, please make sure you running with the correct environments(i.e `Developer Command Prompt for VS 2017`).
+If you run into any errors, please make sure you have the correct environment (on Windows use `Developer Command Prompt for VS 2019`).
 
-Another note that if you re-running cmake again with different options, make sure you remove `CMakeCache.txt` before you run cmake command again. Because the options would be cached in this file and won't refresh automatically.
+Additionally if you re-running cmake config again with different options, please make sure to delete `CMakeCache.txt` file from the build directory before running cmake command again. This is because cmake options are cached in this file.
+
 
 ## Motivation
 
-ImGui library designed to be copied into the project internally, I therefore wanted to externalize it so I can reference to it from multiple projects instead of copying ImGui to each project. 
+ImGui library was designed to be copied directly into the project. This requires an actual compilation every time the project is rebuilt (meaning taking more time), as well as requiring configurations per file in case of using project-wide precompiled-header.
+
+I therefore wanted to externalize it so I can consume it from multiple projects instead of having this extra maintenance.
 
 I also use [Conan C++ Package Manager](https://conan.io/) for building my projects and I wanted to have my [own recipe](https://github.com/giladreich/conan-imgui) for packaging ImGui with conan to make it more portable across different projects.
 
-There is already existing project for [conan-imgui](https://github.com/bincrafters/conan-imgui), but unfortunately it only provides the library as is without the option to enable examples.
-
-I therefore got the motivation to make this CMake module so I can manage my own conan-recipe.
+There is already an existing project for [conan-imgui](https://github.com/bincrafters/conan-imgui), but unfortunately it only provides the library as is without the option to enable examples.
 
 
 ## Authors
 
 * **Gilad Reich** - *Initial work* - [giladreich](https://github.com/giladreich)
 
-See also the list of [contributors](https://github.com/giladreich/ImGui-CMake-Installer/graphs/contributors) who participated in this project.
+See also the list of [contributors](https://github.com/giladreich/cmake-imgui/graphs/contributors) who participated in this project.
 
 
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
-
