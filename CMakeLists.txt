@@ -95,6 +95,12 @@ if(IMGUI_WITH_BACKEND)
     list(APPEND IMGUI_INTERFACE_LIBS dxgi)
     # list(APPEND IMGUI_INTERFACE_LIBS d3dcompiler)
   endif()
+  if(IMGUI_BACKEND_VULKAN)
+    message(STATUS "[ImGui] Including backend api: [Vulkan]")
+    list(APPEND PUBLIC_H_FILES ${BACKENDS_DIR}/imgui_impl_vulkan.h)
+    list(APPEND PUBLIC_CXX_FILES ${BACKENDS_DIR}/imgui_impl_vulkan.cpp)
+    list(APPEND IMGUI_INTERFACE_LIBS Vulkan)
+  endif()
 endif()
 
 set(PROJECT_FILES
@@ -139,6 +145,10 @@ target_link_libraries(${PROJECT_NAME} INTERFACE ${IMGUI_INTERFACE_LIBS})
 if(IMGUI_BACKEND_DX12)
   target_link_libraries(${PROJECT_NAME} PRIVATE d3d12 dxgi)
   target_compile_definitions(${PROJECT_NAME} PRIVATE ImTextureID=ImU64)
+endif()
+
+if(IMGUI_BACKEND_VULKAN)
+  target_link_libraries(${PROJECT_NAME} PRIVATE glfw vulkan)
 endif()
 
 target_compile_options(${PROJECT_NAME}

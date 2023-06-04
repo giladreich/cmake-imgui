@@ -1,6 +1,6 @@
 #
-# ImGui Example App
-# MSVC app using Direct3D9. Similar approach should follow on other platforms.
+# ImGui Example Apps
+# Similar approach should follow on other platforms.
 #
 cmake_minimum_required(VERSION 3.15)
 
@@ -21,7 +21,11 @@ if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
   set(CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/dist" CACHE PATH "" FORCE)
 endif()
 
-add_subdirectory(win32_dx9)
-add_subdirectory(win32_dx10)
-add_subdirectory(win32_dx11)
-add_subdirectory(win32_dx12)
+if(WIN32)
+  add_subdirectory(win32_dx9)
+  add_subdirectory(win32_dx10)
+  add_subdirectory(win32_dx11)
+  add_subdirectory(win32_dx12)
+else()
+  add_subdirectory(glfw_vulkan)
+endif()

@@ -20,7 +20,9 @@ option(IMGUI_WITH_BACKEND
 
 # TODO: Validate configurations based on the given input combination
 # TODO: Add support for other platforms WIN32, SDL, GLFW, GLUT, ANDROID, APPLE, ALLEGRO5
-set(IMGUI_BACKEND_PLATFORM "WIN32" CACHE STRING "")
+if (WIN32)
+  set(IMGUI_BACKEND_PLATFORM "WIN32" CACHE STRING "")
+endif()
 
 
 ##################################################################################################################
@@ -43,5 +45,9 @@ cmake_dependent_option(IMGUI_BACKEND_DX11
 )
 cmake_dependent_option(IMGUI_BACKEND_DX12
   "Set to ON to include DX12 backend files." OFF
+  "IMGUI_WITH_BACKEND" ON
+)
+cmake_dependent_option(IMGUI_BACKEND_VULKAN
+  "Set to ON to include Vulkan backend files." OFF
   "IMGUI_WITH_BACKEND" ON
 )
