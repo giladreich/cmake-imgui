@@ -20,7 +20,9 @@ option(IMGUI_WITH_BACKEND
 
 # TODO: Validate configurations based on the given input combination
 # TODO: Add support for other platforms WIN32, SDL, GLFW, GLUT, ANDROID, APPLE, ALLEGRO5
-set(IMGUI_BACKEND_PLATFORM "WIN32" CACHE STRING "")
+if (WIN32)
+  set(IMGUI_BACKEND_PLATFORM "WIN32" CACHE STRING "")
+endif()
 
 
 ##################################################################################################################
